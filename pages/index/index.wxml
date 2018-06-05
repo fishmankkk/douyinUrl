@@ -1,0 +1,42 @@
+<!--index.wxml-->
+<view class="container-page">
+  <!-- <view class="userinfo">
+    <button wx:if="{{!hasUserInfo && canIUse}}" open-type="getUserInfo" bindgetuserinfo="getUserInfo"> 获取头像昵称 </button>
+    <block wx:else>
+      <image bindtap="bindViewTap" class="userinfo-avatar" src="{{userInfo.avatarUrl}}" mode="cover"></image>
+      <text class="userinfo-nickname">{{userInfo.nickName}}</text>
+    </block>
+  </view> -->
+  <!-- <button open-type="getUserInfo" lang="zh_CN" bindgetuserinfo="onGotUserInfo">获取用户信息</button> -->
+  <view class="decode-url">
+    <textarea class="input-url" maxlength="500" placeholder="请输入链接" value="{{url}}" adjust-position bindinput="textareaBind" />
+    <view class="btn-list">
+      <button type="primary" class="tap-btn" bindtap="changeUrl">转换</button>
+      <button type="primary" class="tap-btn" bindtap="changeUrl" data-taptype="china">过滤中文转换</button>
+    </view>
+
+    <button type="default" bindtap="clearUrl" style="margin-top: 20rpx;">清空</button>
+  </view>
+  <block wx:if="{{errorUrl}}">
+    <text>{{errorUrl}}</text>
+  </block>
+  <block wx:if="{{finishDecodeUrl}}">
+    <video class="video-style" src="{{finishDecodeUrl}}" danmu-list="{{danmuList}}" controls></video>
+    <button type="primary" bindtap="saveVideoToLocal">保存到本地相册</button>
+  </block>
+
+  <block wx:if="{{!saveAuthFlag && !auditing}}">
+    <view class="pop-layer">
+      <view class="pop-cart">
+        
+        <view class="pop-title">
+          <text decode>为了更好的体验\n需要您授权相册权限</text>
+        </view>
+        <view class="pop-icon">
+          <image src="/assets/logo.jpg"></image>
+        </view>
+        <button class="pop-btn" bindtap="goAuthAlbum">去授权</button>
+      </view>
+    </view>
+  </block>
+</view>
