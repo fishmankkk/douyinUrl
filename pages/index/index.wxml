@@ -35,7 +35,8 @@
         <view class="pop-icon">
           <image src="/assets/logo.jpg"></image>
         </view>
-        <button class="pop-btn" bindtap="goAuthAlbum">去授权</button>
+        <button wx:if="{{goAuthFlag}}" class="pop-btn" bindtap="goAuthAlbum">去授权</button>
+        <button wx:else class="pop-btn" open-type="openSetting">去授权</button>
       </view>
     </view>
   </block>

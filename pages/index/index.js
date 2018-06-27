@@ -6,6 +6,7 @@ const mta = require('../../utils/mta_analysis.js')
 
 Page({
   data: {
+    goAuthFlag: true,
     auditing: true,
     userInfo: {},
     saveAuthFlag: false,
@@ -13,6 +14,7 @@ Page({
     canIUse: wx.canIUse('button.open-type.getUserInfo'),
     url: '',
     finishDecodeUrl: '',
+    downloadUrl: '',
     errorUrl: ''
   },
   onReady: function(){
@@ -32,14 +34,15 @@ Page({
   },
   saveVideoToLocal: function(){
     mta.Event.stat("save_video_btn",{})
-    wx.showToast({
+    wx.showLoading({
       title: '保存中...',
-      icon: 'loading'
     })
     wx.downloadFile({
-      url: this.data.finishDecodeUrl,
+      url: this.data.downloadUrl,
       success:function(res){
+        console.log(res)
         let path = res.tempFilePath
+        wx.hideLoading()
         wx.saveVideoToPhotosAlbum({
           filePath: path,
           success(res) {
@@ -59,13 +62,20 @@ Page({
           },
         })
       },fail:function(res){
+        wx.hideLoading()
+        wx.showToast({
+          title: '保存失败，请重试',
+          icon: 'none',
+          duration: 2000
+        })
         console.log(res)
       }
     })
   },
   clearUrl: function(){
     this.setData({
-      url: ''
+      url: '',
+      finishDecodeUrl: ''
     })
   },
   changeUrl: function(e){
@@ -77,9 +87,8 @@ Page({
     // })
     let _that = this;
     if(_that.data.url){
-      wx.showToast({
+      wx.showLoading({
         title: '加载中...',
-        icon: 'loading'
       })
       _that.setData({
         errorUrl: '',
@@ -93,7 +102,6 @@ Page({
         const regAt = /@/g
         urlString = _that.data.url.replace(regChina, "").replace(regJing, "").replace(regDou, "").replace(regAt, "")
       }
-      
       wx.request({
         url: reqServer + '/douyin',
         header: {
@@ -104,6 +112,7 @@ Page({
           url: urlString
         },
         success: function(res) {
+          wx.hideLoading()
           wx.showToast({
             title: '转换成功',
             icon: 'success',
@@ -112,8 +121,10 @@ Page({
           // console.log(res)
           if(res){
             if(res.data){
+              const curDownloadUrl = 'https://www.microfun.top/wxUrlPlus' + res.data.curVideo
               _that.setData({
-                finishDecodeUrl: res.data.video
+                finishDecodeUrl: res.data.video,
+                downloadUrl: curDownloadUrl
               })
             }else{
               _that.setData({
@@ -123,6 +134,7 @@ Page({
           }
         },
         fail: function(res) {
+          wx.hideLoading()
           console.log('转换失败', res);
           wx.showToast({
             title: '转换失败，请重试',
@@ -147,6 +159,16 @@ Page({
     })
   },
   onShow: function(){
+    wx.getSetting({
+      success: res => {
+        if (res.authSetting['scope.writePhotosAlbum']) {
+          app.globalData.saveAuthFlag = true
+          this.setData({
+            saveAuthFlag: true
+          })
+        }
+      }
+    })
     
   },
   onLoad: function () {
@@ -196,7 +218,12 @@ Page({
             saveAuthFlag: true
           })
           app.globalData.saveAuthFlag = true
-        }
+        },
+        fail: res =>{
+          this.setData({
+            goAuthFlag: false
+          })
+        },
     })
   },
   getUserInfo: function(e) {
@@ -213,7 +240,7 @@ Page({
       method: 'GET',
       success: (res) => {
         this.setData({
-          auditing: res.data
+          auditing: res.data.data
         })
       },
       fail: function(res) {
